@@ -1097,7 +1097,7 @@ const RemiGame: React.FC = () => {
                 onClick={() => {
                   if (
                     window.confirm(
-                      'Jeste li sigurni da želite završiti trenutnu igru? Podaci neće biti sačuvani.'
+                      'Jeste li sigurni da želite završiti trenutnu igru? Podaci će biti sačuvani.'
                     )
                   ) {
                     setGameStarted(false);
@@ -1142,6 +1142,12 @@ const RemiGame: React.FC = () => {
                     onChange={(e) =>
                       handleNameChange(player.id, e.target.value)
                     }
+                    className="form-control-modern"
+                    placeholder={`Igrač ${player.id + 1}`}
+                    onClick={(e) => {
+                      // Označi cijeli tekst pri kliku
+                      (e.target as HTMLInputElement).select();
+                    }}
                   />
                 </Form.Group>
               ))}
