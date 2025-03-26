@@ -16,7 +16,382 @@ interface Player {
   name: string;
   scores: number[];
   totalScore: number;
+  selected?: boolean;
+  total?: number;
 }
+
+// Create a global storage object to handle data persistence
+const GameStorage = {
+  // IndexedDB funkcionalnost
+  initIndexedDB: () => {
+    return new Promise<void>((resolve, reject) => {
+      if (!window.indexedDB) {
+        console.log('Vaš preglednik ne podržava IndexedDB.');
+        resolve();
+        return;
+      }
+
+      const request = window.indexedDB.open('RemiBlokDB', 1);
+
+      request.onerror = (event) => {
+        console.error('IndexedDB error:', event);
+        resolve(); // Nastavi bez IndexedDB
+      };
+
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        console.log('Creating object store in IndexedDB...');
+        if (!db.objectStoreNames.contains('gameData')) {
+          db.createObjectStore('gameData', { keyPath: 'id' });
+          console.log('IndexedDB Game Data store created');
+        }
+      };
+
+      request.onsuccess = (event) => {
+        console.log('IndexedDB initialized successfully');
+        resolve();
+      };
+    });
+  },
+
+  // Pojednostavljeni saveToIndexedDB koji je sigurniji
+  saveToIndexedDB: (data: any) => {
+    return new Promise<boolean>((resolve) => {
+      try {
+        // Prvo inicijaliziraj bazu
+        GameStorage.initIndexedDB()
+          .then(() => {
+            const request = window.indexedDB.open('RemiBlokDB', 1);
+
+            request.onerror = () => {
+              console.error('Error opening IndexedDB for saving');
+              resolve(false);
+            };
+
+            request.onsuccess = (event) => {
+              try {
+                const db = (event.target as IDBOpenDBRequest).result;
+                if (!db.objectStoreNames.contains('gameData')) {
+                  console.log('gameData store not found during save operation');
+                  db.close();
+                  resolve(false);
+                  return;
+                }
+
+                const transaction = db.transaction(['gameData'], 'readwrite');
+                const store = transaction.objectStore('gameData');
+
+                const saveData = {
+                  id: 'remiGameData',
+                  ...data,
+                  timestamp: new Date().getTime(),
+                };
+
+                const saveRequest = store.put(saveData);
+
+                saveRequest.onsuccess = () => {
+                  console.log('Data saved to IndexedDB successfully');
+                };
+
+                saveRequest.onerror = (err) => {
+                  console.error('Error saving data to IndexedDB', err);
+                };
+
+                transaction.oncomplete = () => {
+                  console.log('Transaction completed');
+                  db.close();
+                  resolve(true);
+                };
+
+                transaction.onerror = (err) => {
+                  console.error('Transaction error', err);
+                  db.close();
+                  resolve(false);
+                };
+              } catch (err) {
+                console.error('Error in IndexedDB save operation', err);
+                resolve(false);
+              }
+            };
+          })
+          .catch((err) => {
+            console.error('Error initializing IndexedDB', err);
+            resolve(false);
+          });
+      } catch (err) {
+        console.error('Error in saveToIndexedDB', err);
+        resolve(false);
+      }
+    });
+  },
+
+  // Pojednostavljeni loadFromIndexedDB
+  loadFromIndexedDB: () => {
+    return new Promise<any>((resolve) => {
+      try {
+        // Prvo inicijaliziraj bazu
+        GameStorage.initIndexedDB()
+          .then(() => {
+            const request = window.indexedDB.open('RemiBlokDB', 1);
+
+            request.onerror = () => {
+              console.error('Error opening IndexedDB for loading');
+              resolve(null);
+            };
+
+            request.onsuccess = (event) => {
+              try {
+                const db = (event.target as IDBOpenDBRequest).result;
+                if (!db.objectStoreNames.contains('gameData')) {
+                  console.log('gameData store not found during load operation');
+                  db.close();
+                  resolve(null);
+                  return;
+                }
+
+                const transaction = db.transaction(['gameData'], 'readonly');
+                const store = transaction.objectStore('gameData');
+                const getRequest = store.get('remiGameData');
+
+                getRequest.onsuccess = () => {
+                  const result = getRequest.result;
+                  if (result) {
+                    // Ukloni ID i timestamp prije vraćanja
+                    const { id, timestamp, ...cleanResult } = result;
+                    console.log('Data loaded from IndexedDB successfully');
+                    resolve(cleanResult);
+                  } else {
+                    console.log('No data found in IndexedDB');
+                    resolve(null);
+                  }
+                };
+
+                getRequest.onerror = (err) => {
+                  console.error('Error getting data from IndexedDB', err);
+                  resolve(null);
+                };
+
+                transaction.oncomplete = () => {
+                  db.close();
+                };
+
+                transaction.onerror = (err) => {
+                  console.error('Transaction error during load', err);
+                  db.close();
+                  resolve(null);
+                };
+              } catch (err) {
+                console.error('Error in IndexedDB load operation', err);
+                resolve(null);
+              }
+            };
+          })
+          .catch((err) => {
+            console.error('Error initializing IndexedDB', err);
+            resolve(null);
+          });
+      } catch (err) {
+        console.error('Error in loadFromIndexedDB', err);
+        resolve(null);
+      }
+    });
+  },
+
+  saveGame: (data: any) => {
+    return new Promise<boolean>((resolve) => {
+      try {
+        // Spremi u localStorage (primarni izvor)
+        localStorage.setItem('remiGameData', JSON.stringify(data));
+        console.log('Data saved to localStorage');
+
+        // Spremi u sessionStorage (prva rezerva)
+        sessionStorage.setItem('remiGameData', JSON.stringify(data));
+        console.log('Data saved to sessionStorage');
+
+        // Spremi u cookie (druga rezerva, samo ključne podatke)
+        const cookieData = {
+          gameStarted: data.gameStarted,
+          numPlayers: data.numPlayers,
+          currentRound: data.currentRound,
+          timestamp: new Date().getTime(),
+        };
+        document.cookie = `remiGameData=${JSON.stringify(
+          cookieData
+        )}; path=/; max-age=86400`;
+        console.log('Basic data saved to cookie');
+
+        // Pokušaj spremiti u IndexedDB (za veće podatke)
+        GameStorage.saveToIndexedDB(data)
+          .then(() => {
+            resolve(true);
+          })
+          .catch(() => {
+            // Ako IndexedDB ne uspije, još uvijek imamo ostale metode
+            resolve(true);
+          });
+      } catch (error) {
+        console.error('Error in saveGame:', error);
+
+        // Pokušaj alternativnu metodu ako prva ne uspije
+        try {
+          localStorage.setItem('remiGameData_backup', JSON.stringify(data));
+          resolve(true);
+        } catch (backupError) {
+          console.error('Backup save failed:', backupError);
+          resolve(false);
+        }
+      }
+    });
+  },
+
+  loadGame: () => {
+    return new Promise<any>((resolve) => {
+      let source = 'unknown';
+      let data: string | null = null;
+
+      try {
+        // Pokušaj učitati iz localStorage (primarni izvor)
+        data = localStorage.getItem('remiGameData');
+        if (data) {
+          source = 'localStorage';
+          console.log('Data loaded from localStorage');
+          resolve(JSON.parse(data));
+          return;
+        }
+
+        // Pokušaj učitati iz localStorage backup
+        data = localStorage.getItem('remiGameData_backup');
+        if (data) {
+          source = 'localStorage_backup';
+          console.log('Data loaded from localStorage backup');
+          resolve(JSON.parse(data));
+          return;
+        }
+
+        // Pokušaj učitati iz sessionStorage
+        data = sessionStorage.getItem('remiGameData');
+        if (data) {
+          source = 'sessionStorage';
+          console.log('Data loaded from sessionStorage');
+          resolve(JSON.parse(data));
+          return;
+        }
+
+        // Pokušaj učitati iz IndexedDB
+        GameStorage.loadFromIndexedDB()
+          .then((idbData) => {
+            if (idbData) {
+              source = 'IndexedDB';
+              console.log('Data loaded from IndexedDB');
+              resolve(idbData);
+              return;
+            }
+
+            // Pokušaj učitati iz kolačića
+            const cookies = document.cookie.split(';');
+            for (const cookie of cookies) {
+              const [name, value] = cookie.trim().split('=');
+              if (name === 'remiGameData') {
+                data = decodeURIComponent(value);
+                source = 'cookie';
+                console.log('Data loaded from cookie');
+                resolve(JSON.parse(data));
+                return;
+              }
+            }
+
+            // Ništa nije pronađeno
+            console.log('No saved data found');
+            resolve(null);
+          })
+          .catch((error) => {
+            console.error('Error loading from IndexedDB:', error);
+
+            // Ako neuspjeh dohvaćanja iz IndexedDB, ali već imamo podatke iz drugog izvora
+            if (data) {
+              console.log(`Data loaded from ${source}`);
+              resolve(JSON.parse(data));
+            } else {
+              console.log('No saved data found');
+              resolve(null);
+            }
+          });
+      } catch (error) {
+        console.error('Error loading game data:', error);
+        resolve(null);
+      }
+    });
+  },
+
+  clearGame: () => {
+    return new Promise<boolean>((resolve) => {
+      try {
+        // Izbriši iz svih izvora
+        localStorage.removeItem('remiGameData');
+        localStorage.removeItem('remiGameData_backup');
+        sessionStorage.removeItem('remiGameData');
+        document.cookie =
+          'remiGameData=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+
+        // Pokušaj očistiti IndexedDB
+        if (window.indexedDB) {
+          const request = window.indexedDB.open('RemiBlokDB', 1);
+          request.onsuccess = (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            if (db.objectStoreNames.contains('gameData')) {
+              try {
+                const transaction = db.transaction(['gameData'], 'readwrite');
+                const store = transaction.objectStore('gameData');
+                const deleteRequest = store.delete('remiGameData');
+
+                deleteRequest.onsuccess = () => {
+                  console.log('Data deleted from IndexedDB');
+                };
+
+                transaction.oncomplete = () => {
+                  db.close();
+                  console.log('All data cleared successfully');
+                  resolve(true);
+                };
+
+                transaction.onerror = () => {
+                  db.close();
+                  console.log(
+                    'Error in IndexedDB delete transaction, but other storages cleared'
+                  );
+                  resolve(true);
+                };
+              } catch (err) {
+                db.close();
+                console.log(
+                  'Error in IndexedDB clear, but other storages cleared'
+                );
+                resolve(true);
+              }
+            } else {
+              db.close();
+              console.log(
+                'No gameData store to clear, but other storages cleared'
+              );
+              resolve(true);
+            }
+          };
+          request.onerror = () => {
+            console.error('Error opening IndexedDB for clearing');
+            console.log('Other storages cleared');
+            resolve(true);
+          };
+        } else {
+          console.log('IndexedDB not available, but other storages cleared');
+          resolve(true);
+        }
+      } catch (error) {
+        console.error('Error clearing game data:', error);
+        resolve(false);
+      }
+    });
+  },
+};
 
 const RemiGame: React.FC = () => {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -35,183 +410,207 @@ const RemiGame: React.FC = () => {
     currentScore: number;
   } | null>(null);
   const [dealerHistory, setDealerHistory] = useState<number[]>([]);
+  const [roundResults, setRoundResults] = useState<number[]>([]);
+  const [gameEnded, setGameEnded] = useState<boolean>(false);
 
-  // Učitaj podatke prilikom prvog pokretanja komponente
+  // Učitaj spremljene podatke na početku
   useEffect(() => {
-    try {
-      console.log('Započinjem učitavanje podataka...');
+    console.log('Initializing game...');
 
-      // Provjeri sve moguće lokacije podataka
-      let savedData = localStorage.getItem('remiGameData');
+    // Učitaj podatke iz različitih spremišta
+    GameStorage.loadGame()
+      .then((savedData) => {
+        console.log('Load result:', savedData);
 
-      // Ako nema podataka na standardnom mjestu, provjeri backup
-      if (!savedData) {
-        console.log(
-          'Nema podataka na standardnom mjestu, provjeravam backup...'
-        );
-        savedData = localStorage.getItem('remiGameData_backup');
-      }
+        if (savedData) {
+          // Postavi inicijalne podatke
+          if (savedData.players) {
+            console.log('Setting players from saved data:', savedData.players);
+            setPlayers(savedData.players);
+            setNumPlayers(savedData.numPlayers);
+          }
 
-      // Provjeri je li localStorage dostupan i radi
-      if (typeof localStorage !== 'undefined') {
-        try {
-          localStorage.setItem('test', 'test');
-          localStorage.removeItem('test');
-          console.log('localStorage je dostupan i radi');
-        } catch (e) {
-          console.error('localStorage nije dostupan:', e);
-        }
-      }
+          // Postavi stanje igre
+          if (savedData.gameStarted !== undefined) {
+            console.log('Setting game state:', savedData.gameStarted);
+            setGameStarted(savedData.gameStarted);
+          }
 
-      if (savedData) {
-        const data = JSON.parse(savedData);
+          // Postavi trenutnu rundu
+          if (savedData.currentRound !== undefined) {
+            console.log('Setting current round:', savedData.currentRound);
+            setCurrentRound(savedData.currentRound);
+          }
 
-        // Provjera valjanosti podataka
-        if (
-          data &&
-          data.players &&
-          Array.isArray(data.players) &&
-          data.players.length > 0
-        ) {
-          console.log('Učitavam spremljene podatke:', data);
-          setPlayers(data.players);
-          setNumPlayers(data.numPlayers || 2);
-          setGameStarted(data.gameStarted || false);
-          setCurrentRound(data.currentRound || 0);
-          setDealer(data.dealer || 0);
-          setDealerHistory(data.dealerHistory || []);
+          // Postavi rezultate ako postoje
+          if (savedData.roundResults) {
+            console.log('Setting round results:', savedData.roundResults);
+            setRoundResults(savedData.roundResults);
+          }
 
-          // Inicijaliziraj newScore objekt na temelju učitanih igrača
-          const scoreObj: { [key: number]: string } = {};
-          data.players.forEach((player: Player) => {
-            scoreObj[player.id] = '';
-          });
-          setNewScore(scoreObj);
+          // Postavi dealera ako postoji
+          if (savedData.dealer !== undefined) {
+            console.log('Setting dealer:', savedData.dealer);
+            setDealer(savedData.dealer);
+          }
+
+          // Postavi stanje pobjednika ako postoji
+          if (savedData.gameEnded !== undefined) {
+            console.log('Setting game ended state:', savedData.gameEnded);
+            setGameEnded(savedData.gameEnded);
+          }
+
+          // Provjeri jesu li rezultati prisutni da bi postavili igru na "započeta"
+          if (savedData.roundResults && savedData.roundResults.length > 0) {
+            setGameStarted(true);
+          }
         } else {
-          console.warn(
-            'Nevaljani spremljeni podaci, inicijaliziram nove igrače'
-          );
-          initializePlayers(numPlayers);
-          // Obriši nevaljane podatke
-          localStorage.removeItem('remiGameData');
-          localStorage.removeItem('remiGameData_backup');
+          console.log('No saved data found - initializing new players');
+          setPlayers([
+            {
+              id: 1,
+              name: 'Igrač 1',
+              selected: true,
+              total: 0,
+              scores: [],
+              totalScore: 0,
+            },
+            {
+              id: 2,
+              name: 'Igrač 2',
+              selected: true,
+              total: 0,
+              scores: [],
+              totalScore: 0,
+            },
+            {
+              id: 3,
+              name: 'Igrač 3',
+              selected: true,
+              total: 0,
+              scores: [],
+              totalScore: 0,
+            },
+            {
+              id: 4,
+              name: 'Igrač 4',
+              selected: true,
+              total: 0,
+              scores: [],
+              totalScore: 0,
+            },
+          ]);
         }
-      } else {
-        console.log('Nema spremljenih podataka, započinjem novu igru');
-        // Inicijaliziraj igrače ako nema spremljenih podataka
-        initializePlayers(numPlayers);
-      }
-    } catch (e) {
-      console.error('Greška pri učitavanju podataka:', e);
-      // U slučaju greške, inicijaliziraj nove igrače
-      initializePlayers(numPlayers);
-      // Obriši potencijalno korumpirane podatke
-      try {
-        localStorage.removeItem('remiGameData');
-        localStorage.removeItem('remiGameData_backup');
-      } catch (clearErr) {
-        console.error('Greška pri čišćenju podataka:', clearErr);
-      }
-    }
-  }, []);
+      })
+      .catch((error) => {
+        console.error('Error loading game data:', error);
+        // Inicijaliziraj nove igrače ako je došlo do greške
+        setPlayers([
+          {
+            id: 1,
+            name: 'Igrač 1',
+            selected: true,
+            total: 0,
+            scores: [],
+            totalScore: 0,
+          },
+          {
+            id: 2,
+            name: 'Igrač 2',
+            selected: true,
+            total: 0,
+            scores: [],
+            totalScore: 0,
+          },
+          {
+            id: 3,
+            name: 'Igrač 3',
+            selected: true,
+            total: 0,
+            scores: [],
+            totalScore: 0,
+          },
+          {
+            id: 4,
+            name: 'Igrač 4',
+            selected: true,
+            total: 0,
+            scores: [],
+            totalScore: 0,
+          },
+        ]);
+      });
 
-  // Spremi podatke prije zatvaranja ili osvježavanja stranice
-  useEffect(() => {
+    // Postavi slušač događaja za spremanje podataka prije zatvaranja stranice
     const handleBeforeUnload = () => {
-      console.log('Stranica se zatvara/osvježava, spremam podatke...');
-
-      // Osiguraj da su podaci spremljeni prije zatvaranja
+      console.log('Page is being refreshed/closed, saving data...');
       if (players.length > 0) {
-        const dataToSave = {
+        const data = {
           players,
           numPlayers,
           gameStarted,
           currentRound,
+          roundResults,
           dealer,
-          dealerHistory,
+          gameEnded,
         };
-
-        try {
-          // Spremi na oba mjesta za sigurnost
-          localStorage.setItem('remiGameData', JSON.stringify(dataToSave));
-          localStorage.setItem(
-            'remiGameData_backup',
-            JSON.stringify(dataToSave)
-          );
-          console.log('Podaci spremljeni prije zatvaranja');
-        } catch (e) {
-          console.error('Greška pri spremanju prije zatvaranja:', e);
-        }
+        GameStorage.saveGame(data);
       }
     };
 
-    // Dodaj event listener za zatvaranje ili osvježavanje
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Ukloni event listener kada se komponenta uništi
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [players, numPlayers, gameStarted, currentRound, dealer, dealerHistory]);
-
-  // Spremanje podataka u localStorage
-  const saveGameData = () => {
-    try {
+    // Auto-save svakih 10 sekundi
+    const autoSaveInterval = setInterval(() => {
+      console.log('Auto-saving game data...');
       if (players.length > 0) {
-        const dataToSave = {
+        const data = {
           players,
           numPlayers,
           gameStarted,
           currentRound,
+          roundResults,
           dealer,
-          dealerHistory,
+          gameEnded,
         };
-
-        // Pokušaj izravno spremiti
-        localStorage.setItem('remiGameData', JSON.stringify(dataToSave));
-
-        // Provjeri je li spremljeno
-        const checkSaved = localStorage.getItem('remiGameData');
-        if (checkSaved) {
-          console.log('Podaci uspješno spremljeni');
-        } else {
-          console.warn('Podaci nisu uspješno spremljeni');
-
-          // Pokušaj s novim ključem ako prethodni nije uspio
-          localStorage.setItem(
-            'remiGameData_backup',
-            JSON.stringify(dataToSave)
-          );
-        }
+        GameStorage.saveGame(data);
       }
-    } catch (e) {
-      console.error('Greška pri spremanju podataka:', e);
-      // Pokušaj spremiti kao backup
-      try {
-        localStorage.setItem(
-          'remiGameData_backup',
-          JSON.stringify({
-            players,
-            numPlayers,
-            gameStarted,
-            currentRound,
-            dealer,
-            dealerHistory,
-          })
-        );
-        console.log('Backup podataka spremljen');
-      } catch (e2) {
-        console.error('Ni backup nije uspio:', e2);
-      }
-    }
-  };
+    }, 10000);
 
-  // Spremi podatke na svaku promjenu bitnih stanja
+    // Čišćenje
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      clearInterval(autoSaveInterval);
+    };
+  }, []); // Samo kod inicijalizacije
+
+  // Spremi podatke kada se promijeni važno stanje
   useEffect(() => {
-    saveGameData();
-  }, [players, numPlayers, gameStarted, currentRound, dealer, dealerHistory]);
+    if (!players.length) return; // Ne spremaj ako nema igrača
 
-  // Inicijaliziraj igrače
+    console.log('Game state changed, saving data...');
+    const data = {
+      players,
+      numPlayers,
+      gameStarted,
+      currentRound,
+      roundResults,
+      dealer,
+      gameEnded,
+    };
+
+    GameStorage.saveGame(data);
+  }, [
+    players,
+    numPlayers,
+    gameStarted,
+    currentRound,
+    roundResults,
+    dealer,
+    gameEnded,
+  ]);
+
+  // Initialize players
   const initializePlayers = (count: number) => {
     const initialPlayers: Player[] = [];
     for (let i = 0; i < count; i++) {
@@ -285,7 +684,7 @@ const RemiGame: React.FC = () => {
       });
       setNewScore(scoreObj);
 
-      // Odmah spremi inicijalno stanje u localStorage
+      // Save initial state immediately
       const dataToSave = {
         players: resetPlayers,
         numPlayers,
@@ -294,10 +693,10 @@ const RemiGame: React.FC = () => {
         dealer: 0,
         dealerHistory: [0],
       };
-      localStorage.setItem('remiGameData', JSON.stringify(dataToSave));
-      console.log('Nova igra spremljena u localStorage');
+      GameStorage.saveGame(dataToSave);
+      console.log('New game saved to storage');
     } catch (e) {
-      console.error('Greška pri započinjanju nove igre:', e);
+      console.error('Error starting new game:', e);
     }
   };
 
@@ -427,7 +826,7 @@ const RemiGame: React.FC = () => {
       const nextDealer = getNextDealer(newRound, players.length);
       const updatedDealerHistory = [...dealerHistory, nextDealer];
 
-      // Postavi novo stanje
+      // Set new state
       setPlayers(updatedPlayers);
       setCurrentRound(newRound);
       setDealer(nextDealer);
@@ -441,7 +840,7 @@ const RemiGame: React.FC = () => {
       setNewScore(scoreObj);
       setCurrentPlayerInputIndex(0);
 
-      // Eksplicitno spremi sve podatke
+      // Explicitly save all data
       const dataToSave = {
         players: updatedPlayers,
         numPlayers,
@@ -450,10 +849,10 @@ const RemiGame: React.FC = () => {
         dealer: nextDealer,
         dealerHistory: updatedDealerHistory,
       };
-      localStorage.setItem('remiGameData', JSON.stringify(dataToSave));
-      console.log('Rezultati runde spremljeni');
+      GameStorage.saveGame(dataToSave);
+      console.log('Round results saved');
     } catch (e) {
-      console.error('Greška pri spremanju rezultata runde:', e);
+      console.error('Error saving round results:', e);
     }
   };
 
@@ -551,7 +950,7 @@ const RemiGame: React.FC = () => {
       });
       setNewScore(scoreObj);
 
-      // Eksplicitno spremi podatke nakon uređivanja
+      // Explicitly save data after editing
       const dataToSave = {
         players: updatedPlayers,
         numPlayers,
@@ -560,10 +959,10 @@ const RemiGame: React.FC = () => {
         dealer,
         dealerHistory,
       };
-      localStorage.setItem('remiGameData', JSON.stringify(dataToSave));
-      console.log('Uređeni rezultat spremljen');
+      GameStorage.saveGame(dataToSave);
+      console.log('Edited result saved');
     } catch (e) {
-      console.error('Greška pri spremanju uređenog rezultata:', e);
+      console.error('Error saving edited result:', e);
     }
   };
 
@@ -670,9 +1069,9 @@ const RemiGame: React.FC = () => {
       )
     ) {
       try {
-        localStorage.removeItem('remiGameData');
-        console.log('Podaci obrisani iz localStorage-a');
-        // Resetiraj stanje
+        GameStorage.clearGame();
+        console.log('Data deleted from storage');
+        // Reset state
         initializePlayers(numPlayers);
         setGameStarted(false);
         setCurrentRound(0);
@@ -680,7 +1079,7 @@ const RemiGame: React.FC = () => {
         setDealerHistory([]);
         alert('Svi podaci su obrisani');
       } catch (e) {
-        console.error('Greška pri brisanju podataka:', e);
+        console.error('Error deleting data:', e);
       }
     }
   };
@@ -702,7 +1101,16 @@ const RemiGame: React.FC = () => {
                     )
                   ) {
                     setGameStarted(false);
-                    saveGameData(); // Odmah spremi promjenu
+                    // Save the game state change immediately
+                    const dataToSave = {
+                      players,
+                      numPlayers,
+                      gameStarted: false,
+                      currentRound,
+                      dealer,
+                      dealerHistory,
+                    };
+                    GameStorage.saveGame(dataToSave);
                   }
                 }}
               >
@@ -734,6 +1142,12 @@ const RemiGame: React.FC = () => {
                     onChange={(e) =>
                       handleNameChange(player.id, e.target.value)
                     }
+                    className="form-control-modern"
+                    placeholder={`Igrač ${player.id + 1}`}
+                    onClick={(e) => {
+                      // Označi cijeli tekst pri kliku
+                      (e.target as HTMLInputElement).select();
+                    }}
                   />
                 </Form.Group>
               ))}
