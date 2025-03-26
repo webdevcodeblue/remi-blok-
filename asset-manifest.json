@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/remi-blok-/static/css/main.b7c1ce65.css",
-    "main.js": "/remi-blok-/static/js/main.d7c102ab.js",
+    "main.js": "/remi-blok-/static/js/main.77cffc5a.js",
     "static/js/453.4309e8fa.chunk.js": "/remi-blok-/static/js/453.4309e8fa.chunk.js",
     "index.html": "/remi-blok-/index.html",
     "main.b7c1ce65.css.map": "/remi-blok-/static/css/main.b7c1ce65.css.map",
-    "main.d7c102ab.js.map": "/remi-blok-/static/js/main.d7c102ab.js.map",
+    "main.77cffc5a.js.map": "/remi-blok-/static/js/main.77cffc5a.js.map",
     "453.4309e8fa.chunk.js.map": "/remi-blok-/static/js/453.4309e8fa.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.b7c1ce65.css",
-    "static/js/main.d7c102ab.js"
+    "static/js/main.77cffc5a.js"
   ]
 }
