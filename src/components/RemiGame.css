@@ -1,0 +1,632 @@
+/* Remi Blok - Moderan dizajn */
+
+/* Glavna kartica - osnovna struktura */
+.main-card {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  margin-bottom: 30px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.main-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Zaglavlje kartice */
+.bg-gradient {
+  background: linear-gradient(135deg, #3498db, #2c3e50);
+  padding: 20px 25px;
+  border-bottom: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-gradient::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% {
+    left: -150%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
+.card-body-custom {
+  padding: 25px;
+  background-color: white;
+}
+
+/* Početna forma za unos igrača */
+.setup-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 25px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.player-input {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.form-control-modern {
+  border-radius: 10px;
+  padding: 14px 16px;
+  border: 1px solid #e1e5ea;
+  box-shadow: none;
+  transition: all 0.3s ease;
+  background-color: white;
+  font-size: 1rem;
+}
+
+.form-control-modern:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+.start-button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border: none;
+  color: white;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 0 8px 15px rgba(52, 152, 219, 0.3);
+  transition: all 0.3s ease;
+  margin-top: 25px;
+}
+
+.start-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 20px rgba(52, 152, 219, 0.4);
+  background: linear-gradient(135deg, #2980b9, #2c3e50);
+}
+
+.start-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 5px 10px rgba(52, 152, 219, 0.4);
+}
+
+/* Prikaz igre */
+.game-container {
+  padding: 15px 5px;
+}
+
+.round-info {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  margin-bottom: 25px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.round-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, #3498db, #2980b9);
+}
+
+.round-title {
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 5px;
+  font-size: 1.4rem;
+}
+
+.dealer-info {
+  color: #7f8c8d;
+  font-size: 0.95rem;
+}
+
+.score-input-button {
+  padding: 10px 20px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border: none;
+  color: white;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  transition: all 0.3s ease;
+}
+
+.score-input-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(52, 152, 219, 0.4);
+  background: linear-gradient(135deg, #2980b9, #2c3e50);
+}
+
+.score-input-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 3px 10px rgba(52, 152, 219, 0.4);
+}
+
+/* Tablica rezultata */
+.results-container {
+  margin-top: 20px;
+}
+
+.results-title {
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 10px;
+}
+
+.results-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(to right, #3498db, #2980b9);
+  border-radius: 3px;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  background-color: white;
+}
+
+.results-table thead {
+  background: linear-gradient(to right, #f5f7fa, #f8f9fa);
+}
+
+.player-col {
+  background-color: #f8f9fa;
+  width: 170px;
+}
+
+.total-col {
+  background-color: #ebf3f8;
+  width: 100px;
+}
+
+.round-col {
+  background-color: white;
+}
+
+.results-table th {
+  padding: 15px 12px;
+  text-align: center;
+  font-weight: 600;
+  color: #3498db;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.results-table td {
+  padding: 14px 12px;
+  text-align: center;
+  border-bottom: 1px solid #ecf0f1;
+  transition: all 0.2s ease;
+}
+
+.results-table tr:last-child td {
+  border-bottom: none;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.total-score {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 1.15rem;
+}
+
+.round-score {
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.round-score:hover {
+  background-color: #f5f9fc;
+  transform: scale(1.05);
+  z-index: 1;
+}
+
+.round-score:hover::after {
+  content: '✏️';
+  position: absolute;
+  font-size: 12px;
+  top: 3px;
+  right: 3px;
+  opacity: 0.7;
+}
+
+/* Stilovi za pobjednički i gubitnički rezultat */
+.text-success {
+  color: #27ae60 !important;
+  font-weight: 700;
+}
+
+.text-danger {
+  color: #e74c3c !important;
+}
+
+.bg-success {
+  background-color: rgba(46, 204, 113, 0.15) !important;
+}
+
+.bg-danger {
+  background-color: rgba(231, 76, 60, 0.15) !important;
+}
+
+.bg-warning {
+  background-color: rgba(241, 196, 15, 0.1) !important;
+}
+
+/* Modalni prozori */
+.score-modal .modal-content,
+.edit-modal .modal-content {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.modal-header-custom {
+  background: linear-gradient(135deg, #3498db, #2c3e50);
+  color: white;
+  border-bottom: none;
+  padding: 18px 25px;
+  position: relative;
+}
+
+.modal-body-custom {
+  padding: 25px;
+  background-color: white;
+}
+
+.close-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border: none;
+  padding: 0;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+.modal-footer-custom {
+  border-top: none;
+  padding: 15px 25px 25px;
+  background-color: white;
+}
+
+/* Tipke za odabir igrača */
+.player-buttons {
+  margin-bottom: 25px;
+}
+
+.player-buttons-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.player-buttons-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.player-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.player-button {
+  padding: 14px;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background-color: #f5f9fc;
+  color: #2c3e50;
+  border: 1px solid #e1e5ea;
+  position: relative;
+  overflow: hidden;
+}
+
+.player-button.active {
+  background-color: #3498db;
+  color: white;
+  border-color: #3498db;
+  box-shadow: 0 5px 15px rgba(52, 152, 219, 0.25);
+  transform: scale(1.03);
+}
+
+.player-button.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #f1c40f;
+}
+
+/* Numpad dizajn */
+.numpad-container {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.score-display {
+  width: 100%;
+  height: 70px;
+  background-color: #f5f9fc;
+  border-radius: 12px;
+  padding: 10px 15px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 25px;
+  color: #2c3e50;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-display::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, #3498db, #2980b9);
+  opacity: 0.5;
+}
+
+.numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.numpad-button {
+  height: 65px;
+  border-radius: 12px;
+  background-color: white;
+  border: 1px solid #e1e5ea;
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.03);
+}
+
+.numpad-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
+  background-color: #f8f9fa;
+}
+
+.numpad-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.clear-button {
+  background-color: #fef5f5;
+  color: #e74c3c;
+  border-color: #fde3e3;
+}
+
+.clear-button:hover {
+  background-color: #fee5e5;
+}
+
+.minus-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 15px;
+}
+
+.minus-button {
+  flex: 1;
+  height: 55px;
+  border-radius: 12px;
+  background-color: #fef5f5;
+  border: 1px solid #fde3e3;
+  color: #e74c3c;
+  font-size: 1.3rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.03);
+}
+
+.minus-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
+  background-color: #fee5e5;
+}
+
+.minus-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Uređivanje rezultata */
+.edit-modal-body {
+  padding: 25px;
+  background-color: white;
+}
+
+.edit-score-input {
+  width: 100%;
+  height: 80px;
+  border: 1px solid #e1e5ea;
+  border-radius: 12px;
+  font-size: 2.5rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 10px;
+  color: #2c3e50;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.edit-score-input:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1),
+    inset 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+/* Footer gumbi */
+.cancel-button,
+.save-button {
+  border-radius: 12px;
+  padding: 12px 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.cancel-button {
+  background-color: #f5f7fa;
+  color: #2c3e50;
+  border: none;
+}
+
+.cancel-button:hover {
+  background-color: #e9ecef;
+}
+
+.save-button {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.25);
+}
+
+.save-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(52, 152, 219, 0.35);
+  background: linear-gradient(135deg, #2980b9, #2c3e50);
+}
+
+/* Responsivnost */
+@media (max-width: 768px) {
+  .card-body-custom {
+    padding: 15px;
+  }
+
+  .round-info {
+    padding: 15px;
+  }
+
+  .round-title {
+    font-size: 1.2rem;
+  }
+
+  .results-table th,
+  .results-table td {
+    padding: 10px 8px;
+    font-size: 0.9rem;
+  }
+
+  .player-name {
+    font-size: 0.9rem;
+  }
+
+  .total-score {
+    font-size: 1rem;
+  }
+
+  .player-button {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .score-display {
+    font-size: 2rem;
+    height: 60px;
+  }
+
+  .numpad-button {
+    height: 55px;
+    font-size: 1.5rem;
+  }
+}
