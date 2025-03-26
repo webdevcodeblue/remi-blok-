@@ -783,15 +783,38 @@ const RemiGame: React.FC = () => {
     }
   };
 
-  // Submit score and go to next player or finish round
-  const submitPlayerScore = () => {
-    const playerId = players[currentPlayerInputIndex].id;
-    if (newScore[playerId] === '') {
-      alert('Molimo unesite bodove za trenutnog igrača!');
-      return;
-    }
+  // Dodati novu funkciju za provjeru jesu li svi bodovi uneseni
+  const allScoresEntered = () => {
+    // Provjeri jesu li uneseni bodovi za sve igrače
+    return players.every(
+      (player) =>
+        newScore[player.id] !== undefined && newScore[player.id] !== ''
+    );
+  };
 
-    moveToNextPlayer();
+  // Modificirati submitPlayerScore funkciju
+  const submitPlayerScore = () => {
+    const allScoresValid = allScoresEntered();
+
+    if (allScoresValid) {
+      // Svi igrači imaju unesene bodove, bez obzira na trenutni indeks
+      setShowScoreInputModal(false);
+      submitRoundScores();
+    } else if (currentPlayerInputIndex < players.length - 1) {
+      // Premjesti na sljedećeg igrača samo ako nisu svi bodovi uneseni
+      setCurrentPlayerInputIndex(currentPlayerInputIndex + 1);
+    } else {
+      // Ako smo na zadnjem igraču ali još nemamo sve bodove
+      // Prijeđi na prvog igrača koji nema unesen rezultat
+      const nextPlayerWithoutScore = players.findIndex(
+        (player) =>
+          newScore[player.id] === undefined || newScore[player.id] === ''
+      );
+
+      if (nextPlayerWithoutScore !== -1) {
+        setCurrentPlayerInputIndex(nextPlayerWithoutScore);
+      }
+    }
   };
 
   // Add scores for the current round
@@ -1334,19 +1357,12 @@ const RemiGame: React.FC = () => {
           >
             Odustani
           </Button>
-          {currentPlayerInputIndex < players.length - 1 ? (
-            <Button variant="primary" onClick={submitPlayerScore}>
-              Sljedeći igrač
-            </Button>
-          ) : (
-            <Button
-              variant="success"
-              onClick={submitPlayerScore}
-              disabled={Object.values(newScore).some((score) => score === '')}
-            >
-              Spremi rundu
-            </Button>
-          )}
+          <Button
+            variant={allScoresEntered() ? 'success' : 'primary'}
+            onClick={submitPlayerScore}
+          >
+            {allScoresEntered() ? 'Spremi rundu' : 'Sljedeći igrač'}
+          </Button>
         </Modal.Footer>
       </Modal>
 
