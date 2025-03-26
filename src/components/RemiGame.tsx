@@ -698,7 +698,7 @@ const RemiGame: React.FC = () => {
                 onClick={() => {
                   if (
                     window.confirm(
-                      'Jeste li sigurni da želite završiti trenutnu igru? Podaci će biti sačuvani.'
+                      'Jeste li sigurni da želite završiti trenutnu igru? Podaci neće biti sačuvani.'
                     )
                   ) {
                     setGameStarted(false);
