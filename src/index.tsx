@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import './installPrompt.js'; // Dodajemo skriptu za prikazivanje prompta za instalaciju
 
 // Check for localStorage availability at startup
 const checkStorageAvailability = (type: 'localStorage' | 'sessionStorage') => {
@@ -52,3 +53,17 @@ root.render(
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
+
+// Registriramo service worker za PWA funkcionalnost
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/remi-blok-/service-worker.js')
+      .then((registration) => {
+        console.log('Service Worker registered: ', registration);
+      })
+      .catch((registrationError) => {
+        console.log('Service Worker registration failed: ', registrationError);
+      });
+  });
+}
