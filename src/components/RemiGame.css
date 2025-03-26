@@ -8,6 +8,8 @@
   background-color: white;
   margin-bottom: 30px;
   transition: transform 0.3s, box-shadow 0.3s;
+  width: 100%;
+  max-width: 100%;
 }
 
 .main-card:hover {
@@ -15,39 +17,46 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
 }
 
-/* Zaglavlje kartice */
+/* Kontejner - povećana širina */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* Uklanjanje razmaka od vrha */
+.mt-4 {
+  margin-top: 0 !important;
+}
+
+/* Zaglavlje kartice - smanjena visina */
 .bg-gradient {
   background: linear-gradient(135deg, #3498db, #2c3e50);
-  padding: 20px 25px;
+  padding: 10px 15px;
   border-bottom: none;
   position: relative;
   overflow: hidden;
 }
 
-.bg-gradient::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -50%;
-  width: 150%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: skewX(-25deg);
-  animation: shine 3s infinite;
+/* Smanjeno zaglavlje s Remi Blok i Nova igra gumbom */
+.card-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0;
 }
 
-@keyframes shine {
-  0% {
-    left: -150%;
-  }
-  100% {
-    left: 150%;
-  }
+/* Poboljšanje responsive ponašanja za gumbe u zaglavlju */
+.bg-primary.text-white.d-flex {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.bg-primary.text-white.d-flex button {
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
 }
 
 .card-body-custom {
@@ -245,6 +254,7 @@
   text-align: center;
   border-bottom: 1px solid #ecf0f1;
   transition: all 0.2s ease;
+  font-size: 1.3rem;
 }
 
 .results-table tr:last-child td {

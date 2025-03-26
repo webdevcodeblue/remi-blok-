@@ -11,7 +11,9 @@ function App() {
     <div className="App">
       <Navbar bg="dark" variant="dark" expand="lg">
         <Container>
-          <Navbar.Brand href="#home">Remi Blok</Navbar.Brand>
+          <Navbar.Brand href="#home" style={{ marginLeft: '15px' }}>
+            Remi Blok
+          </Navbar.Brand>
           <Nav className="me-auto">
             <Button variant="outline-light" onClick={() => setShowRules(true)}>
               Pravila igre

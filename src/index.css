@@ -16,12 +16,12 @@ body {
   background: linear-gradient(135deg, #f5f7fa 0%, #e4eff9 100%);
   color: #2c3e50;
   min-height: 100vh;
-  padding: 30px 15px;
+  padding: 0;
 }
 
 @media (max-width: 768px) {
   body {
-    padding: 20px 10px;
+    padding: 0;
   }
 }
 
@@ -65,8 +65,9 @@ textarea {
 }
 
 .container {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 /* Scrollbar styling */
@@ -116,6 +117,16 @@ code {
   padding: 18px 20px;
 }
 
+.card-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0;
+}
+
+.card-header .btn-outline-light {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+}
+
 .table {
   margin-bottom: 0;
   color: #2c3e50;
@@ -136,6 +147,7 @@ code {
   vertical-align: middle;
   border-top: 1px solid #ecf0f1;
   transition: all 0.2s ease;
+  font-size: 1.3rem;
 }
 
 /* Stilovi za gumbe */
@@ -267,8 +279,7 @@ code {
 /* Stilovi za responsive dizajn */
 @media (max-width: 768px) {
   .container {
-    padding-left: 15px;
-    padding-right: 15px;
+    padding: 0;
   }
 
   .card-header {
@@ -289,4 +300,19 @@ code {
     padding: 8px 20px;
     font-size: 0.9rem;
   }
+
+  .table tbody td {
+    font-size: 1.1rem;
+  }
+}
+
+/* Stilovi za crnu pozadinu gdje je Remi Blok tekst i gumb Pravila igre */
+.navbar-brand {
+  margin-left: 15px; /* Dodatni prostor s lijeve strane za tekst Remi Blok */
+  padding-left: 15px;
+}
+
+.navbar .navbar-brand {
+  padding-left: 15px;
+  margin-left: 15px;
 }
